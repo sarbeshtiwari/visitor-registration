@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+video {
+  transform: scaleX(-1); /* optional selfie mirror */
+}
