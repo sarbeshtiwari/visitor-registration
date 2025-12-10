@@ -2,8 +2,10 @@ import { useNavigate } from "react-router-dom";
 import { 
   LogOut, 
   Users, 
-  UserCheck, 
-  Activity,
+  // UserCheck, 
+  // Activity,
+  // TrendingUp,
+  // BarChart3,
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -23,14 +25,14 @@ export default function Dashboard() {
       gradient: "bg-gradient-to-br",
       desc: "View and manage all clients"
     },
-    {
-      title: "User Management",
-      icon: UserCheck,
-      path: "/users",
-      color: "from-purple-500 to-pink-500",
-      gradient: "bg-gradient-to-br",
-      desc: "Administer system users"
-    },
+    // {
+    //   title: "User Management",
+    //   icon: UserCheck,
+    //   path: "/users",
+    //   color: "from-purple-500 to-pink-500",
+    //   gradient: "bg-gradient-to-br",
+    //   desc: "Administer system users"
+    // },
     // {
     //   title: "Analytics",
     //   icon: BarChart3,
@@ -77,13 +79,13 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Overview */}
-        <div className="px-8 md:px-12 mb-10">
+        {/* <div className="px-8 md:px-12 mb-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { label: "Total Clients", value: "1,248", change: "+12%", icon: Users },
               { label: "Today's Clients", value: "892", change: "+8%", icon: Activity },
-              // { label: "Revenue", value: "$48.2k", change: "+23%", icon: TrendingUp },
-              // { label: "Growth Rate", value: "87%", change: "+5%", icon: BarChart3 }
+              { label: "Revenue", value: "$48.2k", change: "+23%", icon: TrendingUp },
+              { label: "Growth Rate", value: "87%", change: "+5%", icon: BarChart3 }
             ].map((stat, i) => (
               <div
                 key={i}
@@ -98,7 +100,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         {/* Main Menu Grid */}
         <div className="px-8 md:px-12 pb-12">

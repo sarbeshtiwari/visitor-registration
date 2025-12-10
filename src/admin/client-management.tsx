@@ -1,368 +1,535 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Search, Download, X, Calendar, User, Mail, Phone, MapPin, 
-  Building, IndianRupee, Eye, Home,
-  Briefcase, CreditCard, Users, StickyNote
+import {
+  Search,
+  Download,
+  X,
+  Eye,
+  FileText,
+  User,
+  Mail,
+  Phone,
+  CreditCard,
+  MapPin,
+  Building,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  FileCheck,
+  UserCheck,
+  Image,
+  Signature,
+  Banknote,
+  IdCard,
+  DownloadCloud
 } from "lucide-react";
 
 interface User {
-  id: string;
+  userType: string;
   name: string;
   email: string;
-  phone: string;
-  aadharLast4?: string;
-  project: string;
-  location: string;
+  mobile: string;
+  pan: string;
+  aadhaar: string;
   address: string;
-  occupation: string;
-  budget: string;
-  referral: "no" | "broker" | "other";
-  brokerName?: string;
-  brokerPhone?: string;
-  brokerId?: string;
-  otherName?: string;
-  otherPhone?: string;
-  otherRelation?: string;
-  notes?: string;
-  photoUrl?: string;
-  registrationDate: string;
-  leadType: string;
+  city: string;
+  preference: string;
+  source: string;
+  agentName?: string;
+  agentMobile?: string;
+  agentRERA?: string;
+  accountHolder?: string;
+  chequeNo?: string;
+  bankBranch?: string;
+  instrumentDate?: string;
+  aadhaarFile?: string;
+  panFile?: string;
+  userPhoto?: string;
+  signature?: string;
+  chequePhoto?: string;
+  reraCertificate?: string;
+  declarationAccepted?: boolean;
+  declarationName?: string;
+  declarationLocation?: string;
+  declarationDate?: string;
+  id: string;
+  createdAt?: string;
 }
 
-// Dummy data with realistic photos
-const dummyUsers: User[] = Array.from({ length: 35 }, (_, i) => ({
-  id: (i + 1).toString(),
-  name: `Client ${i + 1}`,
-  email: `client${i + 1}@example.com`,
-  phone: `98${Math.floor(100000000 + Math.random() * 900000000)}`,
-  aadharLast4: `${Math.floor(1000 + Math.random() * 9000)}`,
-  project: ["Green Acres", "Sunshine Heights", "Skyline Apartments", "River View"][i % 4],
-  location: ["Mumbai", "Pune", "Bangalore", "Delhi", "Hyderabad"][i % 5],
-  address: `${i + 101}, ${["Andheri", "Kormangala", "Baner", "Gurgaon"][i % 4]} West, ${["Mumbai", "Bangalore", "Pune", "Delhi"][i % 4]}`,
-  occupation: ["Engineer", "Doctor", "Business Owner", "IT Professional", "Architect"][i % 5],
-  budget: ["50-75L", "75-1Cr", "1-1.5Cr", "1.5-2Cr", "2Cr+"][i % 5],
-  referral: ["no", "broker", "other"][i % 3] as any,
-  brokerName: i % 3 === 1 ? `Rajesh Sharma ${i}` : "",
-  brokerPhone: i % 3 === 1 ? `91234${56789 + i}` : "",
-  brokerId: i % 3 === 1 ? `BRK${1000 + i}` : "",
-  otherName: i % 3 === 2 ? `Priya Mehta` : "",
-  otherPhone: i % 3 === 2 ? `98765${43210 + i}` : "",
-  otherRelation: i % 3 === 2 ? "Friend" : "",
-  notes: i % 7 === 0 ? "Hot lead - Ready to book site visit next week" : "",
-  photoUrl: `https://randomuser.me/api/portraits/${i % 2 === 0 ? "men" : "women"}/${(i % 50) + 1}.jpg`,
-  registrationDate: new Date(Date.now() - i * 86400000 * Math.floor(Math.random() * 10)).toISOString(),
-  leadType: ["Direct", "Broker", "Referral"][i % 3],
-}));
+const FILE_BASE_URL = "https://sar.ecis.in/api/suncity/uploads/";
 
 export default function UsersList() {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [exportOption, setExportOption] = useState<"today" | "date">("today");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [exportModal, setExportModal] = useState(false);
   const [exportDate, setExportDate] = useState("");
+  const [exportType, setExportType] = useState<"today" | "date">("today");
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"info" | "documents" | "declaration">("info");
 
-  const usersPerPage = 10;
+  const USERS_PER_PAGE = 12;
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("https://sar.ecis.in/api/suncity/eoi");
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.error("Failed to load users", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
   const filteredUsers = useMemo(() => {
-    return dummyUsers.filter(user =>
-      Object.values(user).some(val =>
-        val?.toString().toLowerCase().includes(search.toLowerCase())
+    return users.filter((u) =>
+      Object.values(u).some((v) =>
+        v?.toString().toLowerCase().includes(search.toLowerCase())
       )
     );
-  }, [search]);
+  }, [search, users]);
 
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * usersPerPage,
-    currentPage * usersPerPage
-  );
+  const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+  const paginated = filteredUsers.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE);
 
   const handleExport = () => {
-    let exportUsers: User[] = [];
-    const today = new Date();
+    let exportList = users;
 
-    if (exportOption === "today") {
-      exportUsers = filteredUsers.filter(u => {
-        const d = new Date(u.registrationDate);
-        return d.toDateString() === today.toDateString();
-      });
-    } else if (exportOption === "date" && exportDate) {
-      const selected = new Date(exportDate);
-      exportUsers = filteredUsers.filter(u => {
-        const d = new Date(u.registrationDate);
-        return d.toDateString() === selected.toDateString();
-      });
+    if (exportType === "today") {
+      const today = new Date().toISOString().split("T")[0];
+      exportList = users.filter((u: any) => (u.createdAt || "").startsWith(today));
+    } else if (exportDate) {
+      exportList = users.filter((u: any) => (u.createdAt || "").startsWith(exportDate));
     }
 
-    if (exportUsers.length === 0) {
+    if (exportList.length === 0) {
       alert("No users found for the selected date.");
       return;
     }
 
-    const headers = ["Name", "Email", "Phone", "Project", "Location", "Budget", "Lead Type", "Full Address", "Occupation", "Aadhar Last 4", "Date"];
-    const rows = exportUsers.map(u => [
-      u.name, u.email, u.phone, u.project, u.location, u.budget, u.leadType, u.address, u.occupation, u.aadharLast4,
-      new Date(u.registrationDate).toLocaleDateString()
-    ]);
+    const headers = [
+      "ID,Name,Email,Mobile,PAN,Aadhaar,City,Preference,Source,Agent Name,Cheque No,Declaration Accepted,Date"
+    ];
 
-    const csv = "data:text/csv;charset=utf-8," + 
-       [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const rows = exportList.map((u) => [
+      u.id,
+      u.name,
+      u.email,
+      u.mobile,
+      u.pan,
+      u.aadhaar,
+      u.city,
+      u.preference,
+      u.source,
+      u.agentName || "",
+      u.chequeNo || "",
+      u.declarationAccepted ? "Yes" : "No",
+      u.declarationDate || u.createdAt || ""
+    ].map(val => `"${val}"`).join(","));
 
+    const csv = "data:text/csv;charset=utf-8," + headers.concat(rows).join("\n");
     const link = document.createElement("a");
     link.setAttribute("href", encodeURI(csv));
-    link.setAttribute("download", `users_${exportOption === "today" ? "today" : exportDate}.csv`);
+    link.setAttribute("download", `users-export-${exportType === "today" ? "today" : exportDate}.csv`);
+    document.body.appendChild(link);
     link.click();
-    setShowExportModal(false);
+    document.body.removeChild(link);
+    setExportModal(false);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 -left-40 w-96 h-96 bg-purple-800 rounded-full mix-blend-multiply blur-3xl opacity-40 animate-pulse"></div>
-        <div className="absolute bottom-0 -right-40 w-96 h-96 bg-pink-800 rounded-full mix-blend-multiply blur-3xl opacity-40 animate-pulse"></div>
-      </div>
+  const fileUrl = (filename?: string) => filename ? `${FILE_BASE_URL}${filename}` : null;
 
-      <div className="relative z-10 p-6 md:p-10">
-        <motion.div initial={{ y: -30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-8">
-          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
-            Registered Users
-          </h1>
-          <p className="text-white/60 mt-2">Complete client database with detailed information</p>
-        </motion.div>
-        <div className="flex flex-col lg:flex-row gap-4 mb-8">
-          <div className="relative flex-1 max-w-2xl">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-            <input
-              type="text"
-              placeholder="Search anything... (name, phone, project, broker, notes, etc.)"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-              className="w-full pl-12 pr-6 py-4 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl focus:outline-none focus:border-cyan-400 transition-all placeholder-white/40"
-            />
+  const documents = selectedUser ? [
+    { label: "User Photo", icon: UserCheck, file: selectedUser.userPhoto },
+    { label: "Aadhaar Card", icon: IdCard, file: selectedUser.aadhaarFile },
+    { label: "PAN Card", icon: CreditCard, file: selectedUser.panFile },
+    { label: "Signature", icon: Signature, file: selectedUser.signature },
+    { label: "Cheque Photo", icon: Banknote, file: selectedUser.chequePhoto },
+    { label: "RERA Certificate", icon: FileCheck, file: selectedUser.reraCertificate },
+  ].filter(d => d.file) : [];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-100">
+      {/* Main Container */}
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Registered Users
+            </h1>
+            <p className="text-gray-400 mt-2">Manage and view all EOI submissions</p>
           </div>
           <button
-            onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-500 to-cyan-600 rounded-2xl hover:scale-105 transition-all shadow-xl font-medium"
+            onClick={() => setExportModal(true)}
+            className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-medium transition-all shadow-lg hover:shadow-blue-500/25"
           >
-            <Download className="w-5 h-5" />
+            <DownloadCloud size={20} />
             Export CSV
           </button>
         </div>
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl overflow-hidden shadow-2xl">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/5 border-b border-white/10">
-                <tr>
-                  <th className="px-6 py-5 text-left text-sm font-semibold">Photo</th>
-                  <th className="px-6 py-5 text-left text-sm font-semibold">Name</th>
-                  <th className="px-6 py-5 text-left text-sm font-semibold">Contact</th>
-                  <th className="px-6 py-5 text-left text-sm font-semibold">Project</th>
-                  <th className="px-6 py-5 text-left text-sm font-semibold">Budget</th>
-                  <th className="px-6 py-5 text-left text-sm font-semibold">Lead Type</th>
-                  <th className="px-6 py-5 text-left text-sm font-semibold">Date</th>
-                  <th className="px-6 py-5 text-center text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedUsers.map((user, i) => (
-                  <motion.tr
-                    key={user.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
-                    className="border-b border-white/5 hover:bg-white/5 transition-all"
-                  >
-                    <td className="px-6 py-5">
-                      <img src={user.photoUrl} alt="" className="w-12 h-12 rounded-full object-cover ring-2 ring-white/20" />
-                    </td>
-                    <td className="px-6 py-5">
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-white/60">ID: #{user.id.padStart(4, '0')}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="text-sm">
-                        <p>{user.phone}</p>
-                        <p className="text-white/60">{user.email}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 font-medium">{user.project}</td>
-                    <td className="px-6 py-5">
-                      <span className="inline-flex items-center gap-1">
-                        <IndianRupee className="w-4 h-4" />
-                        {user.budget}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        user.leadType === "Direct" ? "bg-blue-500/30 text-blue-300" :
-                        user.leadType === "Broker" ? "bg-purple-500/30 text-purple-300" :
-                        "bg-emerald-500/30 text-emerald-300"
-                      }`}>
-                        {user.leadType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 text-sm text-white/70">
-                      {new Date(user.registrationDate).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-5 text-center">
-                      <button
-                        onClick={() => setSelectedUser(user)}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl hover:scale-110 transition-all font-medium text-sm shadow-lg"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Details
-                      </button>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex justify-center gap-2 p-6 bg-white/5">
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-12 h-12 rounded-xl font-medium transition-all ${
-                  currentPage === i + 1
-                    ? "bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg"
-                    : "bg-white/10 hover:bg-white/20"
-                }`}
-              >
-                {i + 1}
-              </button>
+
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={22} />
+          <input
+            type="text"
+            placeholder="Search by name, email, mobile, PAN..."
+            className="w-full pl-14 pr-6 py-4 bg-gray-800/50 backdrop-blur border border-gray-700 rounded-2xl focus:outline-none focus:border-blue-500 transition-colors text-lg"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+        </div>
+
+        {/* Users Grid / Cards */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 animate-pulse">
+                <div className="h-6 bg-gray-700 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-700 rounded w-full mb-2"></div>
+                <div className="h-4 bg-gray-700 rounded w-5/6"></div>
+              </div>
             ))}
           </div>
-        </div>
-      </div>
-      <AnimatePresence>
-        {selectedUser && (
-          <motion.div
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">🔍</div>
+            <p className="text-xl text-gray-400">No users found matching your search.</p>
+          </div>
+        ) : (
+          <>
+{/* Users Table - Modern & Responsive */}
+<div className="bg-gray-800/40 backdrop-blur border border-gray-700 rounded-2xl overflow-hidden">
+  <div className="overflow-x-auto">
+    <table className="w-full text-left">
+      {/* Sticky Header */}
+      <thead className="bg-gray-900/80 backdrop-blur border-b border-gray-700 sticky top-0">
+        <tr>
+          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
+            ID
+          </th>
+          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
+            Name
+          </th>
+          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400 hidden lg:table-cell">
+            Email
+          </th>
+          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
+            Phone
+          </th>
+          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400 hidden md:table-cell">
+            City
+          </th>
+          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400 hidden sm:table-cell">
+            Type
+          </th>
+          <th className="px-6 py-5 text-right text-xs font-medium uppercase tracking-wider text-gray-400">
+            Actions
+          </th>
+        </tr>
+      </thead>
+
+      <tbody className="divide-y divide-gray-700">
+        {paginated.map((user) => (
+          <motion.tr
+            key={user.id}
+            layout
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-50 p-4 overflow-y-auto"
+            className="hover:bg-gray-800/60 transition-all duration-200 group"
+          >
+            {/* ID */}
+            <td className="px-6 py-5 text-xs font-mono text-blue-400">
+              {user.id}
+            </td>
+
+            {/* Name */}
+            <td className="px-6 py-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                  {user.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-semibold text-white group-hover:text-blue-400 transition-colors">
+                    {user.name}
+                  </p>
+                  <p className="text-xs text-gray-500 lg:hidden">{user.email}</p>
+                </div>
+              </div>
+            </td>
+
+            {/* Email - Hidden on small screens */}
+            <td className="px-6 py-5 text-gray-300 hidden lg:table-cell">
+              <div className="flex items-center gap-2">
+                <Mail size={14} className="text-gray-500" />
+                <span className="truncate max-w-xs">{user.email}</span>
+              </div>
+            </td>
+
+            {/* Phone */}
+            <td className="px-6 py-5">
+              <div className="flex items-center gap-2 text-gray-300">
+                <Phone size={14} className="text-gray-500" />
+                {user.mobile}
+              </div>
+            </td>
+
+            {/* City - Hidden on mobile */}
+            <td className="px-6 py-5 text-gray-300 hidden md:table-cell">
+              <div className="flex items-center gap-2">
+                <MapPin size={14} className="text-gray-500" />
+                {user.city}
+              </div>
+            </td>
+
+            {/* User Type - Hidden on very small screens */}
+            <td className="px-6 py-5 hidden sm:table-cell">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+                {user.userType}
+              </span>
+            </td>
+
+            {/* Actions */}
+            <td className="px-6 py-5 text-right">
+              <button
+                onClick={() => setSelectedUser(user)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-blue-500/25"
+              >
+                <Eye size={16} />
+                <span className="hidden sm:inline">View</span>
+              </button>
+            </td>
+          </motion.tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  {/* Empty State */}
+  {paginated.length === 0 && !loading && (
+    <div className="text-center py-20">
+      <div className="text-6xl mb-4 opacity-20">📋</div>
+      <p className="text-xl text-gray-500">No users found</p>
+      {search && <p className="text-sm text-gray-600 mt-2">Try adjusting your search query</p>}
+    </div>
+  )}
+</div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-10">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-3 bg-gray-800 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition"
+                >
+                  <ChevronLeft />
+                </button>
+                <span className="text-lg font-medium">
+                  Page <span className="text-blue-400">{page}</span> of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-3 bg-gray-800 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition"
+                >
+                  <ChevronRight />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* User Detail Modal with Tabs */}
+      <AnimatePresence>
+        {selectedUser && (
+          <motion.div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={() => setSelectedUser(null)}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 50 }}
+              className="bg-gray-900 border border-gray-800 rounded-3xl max-w-4xl w-full max-h-[95vh] overflow-y-auto"
+              initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 50 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-2xl border border-white/20 rounded-3xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto"
+              exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 bg-gradient-to-b from-slate-900/90 to-transparent backdrop-blur-xl border-b border-white/10 p-6 flex justify-between items-center z-1">
+              {/* Header */}
+              <div className="sticky top-0 bg-gray-900/95 backdrop-blur border-b border-gray-800 p-6 flex justify-between items-center">
                 <div>
-                  <h2 className="text-4xl font-bold">{selectedUser.name}</h2>
-                  <p className="text-cyan-400">Lead ID: #{selectedUser.id.padStart(4, '0')} • {selectedUser.leadType} Lead</p>
+                  <h2 className="text-3xl font-bold text-white">{selectedUser.name}</h2>
+                  <p className="text-gray-400">User ID: {selectedUser.id}</p>
                 </div>
-                <button onClick={() => setSelectedUser(null)} className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center">
-                  <X className="w-6 h-6" />
+                <button
+                  onClick={() => setSelectedUser(null)}
+                  className="p-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition"
+                >
+                  <X size={20} />
                 </button>
               </div>
+
+              {/* Tabs */}
+              <div className="flex border-b border-gray-800">
+                {[
+                  { id: "info", label: "Personal Info", icon: User },
+                  { id: "documents", label: "Documents", icon: FileText },
+                  { id: "declaration", label: "Declaration", icon: FileCheck }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center gap-2 px-8 py-4 font-medium transition ${
+                      activeTab === tab.id
+                        ? "text-blue-400 border-b-2 border-blue-400"
+                        : "text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    <tab.icon size={18} />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="p-8">
-                <div className="grid md:grid-cols-3 gap-8 mb-10">
-                  <div className="md:col-span-1">
-                    <img src={selectedUser.photoUrl} alt="" className="w-full rounded-2xl shadow-2xl" />
-                    {selectedUser.notes && (
-                      <div className="mt-6 p-6 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/50 rounded-2xl">
-                        <p className="text-amber-300 flex items-start gap-3">
-                          <StickyNote className="w-5 h-5 mt-0.5" />
-                          <span className="font-medium">{selectedUser.notes}</span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="md:col-span-2">
-                    <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden">
-                      <table className="w-full">
-                        <tbody>
-                          {[
-                            { icon: User, label: "Full Name", value: selectedUser.name },
-                            { icon: Mail, label: "Email", value: selectedUser.email },
-                            { icon: Phone, label: "Phone", value: selectedUser.phone },
-                            { icon: CreditCard, label: "Aadhar Last 4", value: selectedUser.aadharLast4 || "—", mono: true },
-                            { icon: Building, label: "Project", value: selectedUser.project },
-                            { icon: MapPin, label: "Location", value: selectedUser.location },
-                            { icon: Home, label: "Full Address", value: selectedUser.address },
-                            { icon: Briefcase, label: "Occupation", value: selectedUser.occupation },
-                            { icon: IndianRupee, label: "Budget Range", value: selectedUser.budget },
-                            { icon: Calendar, label: "Registered On", value: new Date(selectedUser.registrationDate).toLocaleString() },
-                          ].map((item, i) => (
-                            <tr key={i} className="border-b border-white/5 last:border-0">
-                              <td className="px-6 py-5 w-10">
-                                <item.icon className="w-5 h-5 text-cyan-400" />
-                              </td>
-                              <td className="px-6 py-5 text-white/70 font-medium">{item.label}</td>
-                              <td className={`px-6 py-5 font-medium ${item.mono ? "font-mono text-cyan-300" : ""}`}>
-                                {item.value}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                {activeTab === "info" && (
+                  <div className="grid md:grid-cols-2 gap-8">
+                   <div className="space-y-5">
+                      <h3 className="text-xl font-semibold text-blue-400">Basic Details</h3>
+                      {[
+                        ["Email", selectedUser.email, Mail] as const,
+                        ["Phone", selectedUser.mobile, Phone] as const,
+                        ["PAN", selectedUser.pan, CreditCard] as const,
+                        ["Aadhaar", selectedUser.aadhaar, IdCard] as const,
+                        ["City", selectedUser.city, MapPin] as const,
+                      ].map(([label, value, Icon]) => {
+                        const Component = Icon;
+                        return (
+                          <div key={label} className="flex items-center gap-4">
+                            <Component size={20} className="text-gray-500" />
+                            <div>
+                              <p className="text-sm text-gray-500">{label}</p>
+                              <p className="font-medium">{value}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    {selectedUser.referral !== "no" && (
-                      <div className="mt-8 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-purple-500/30 rounded-3xl p-6">
-                        <h3 className="text-xl font-bold mb-4 flex items-center gap-3">
-                          <Users className="w-6 h-6" />
-                          Referral Information
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          {selectedUser.referral === "broker" && (
-                            <>
-                              <div><span className="text-white/70">Broker Name:</span> <strong>{selectedUser.brokerName}</strong></div>
-                              <div><span className="text-white/70">Broker Phone:</span> <strong>{selectedUser.brokerPhone}</strong></div>
-                              <div><span className="text-white/70">Broker ID:</span> <strong className="font-mono text-cyan-300">{selectedUser.brokerId}</strong></div>
-                            </>
-                          )}
-                          {selectedUser.referral === "other" && (
-                            <>
-                              <div><span className="text-white/70">Referred By:</span> <strong>{selectedUser.otherName}</strong></div>
-                              <div><span className="text-white/70">Phone:</span> <strong>{selectedUser.otherPhone}</strong></div>
-                              <div><span className="text-white/70">Relation:</span> <strong>{selectedUser.otherRelation}</strong></div>
-                            </>
-                          )}
+                    <div className="space-y-5">
+                      <h3 className="text-xl font-semibold text-blue-400">Additional Info</h3>
+                      {[
+                        ["Preference", selectedUser.preference],
+                        ["Source", selectedUser.source],
+                        ["Agent", selectedUser.agentName || "N/A"],
+                        ["Cheque No.", selectedUser.chequeNo || "N/A"],
+                        ["Bank", selectedUser.bankBranch || "N/A"],
+                      ].map(([label, value]) => (
+                        <div key={label}>
+                          <p className="text-sm text-gray-500">{label}</p>
+                          <p className="font-medium">{value}</p>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "documents" && (
+                  <div>
+                    <h3 className="text-xl font-semibold text-blue-400 mb-6">Uploaded Documents</h3>
+                    {documents.length === 0 ? (
+                      <p className="text-gray-500 text-center py-10">No documents uploaded</p>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                        {documents.map((doc) => (
+                          <a
+                            key={doc.file}
+                            href={fileUrl(doc.file)!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group block p-6 bg-gray-800/50 border border-gray-700 rounded-2xl hover:border-blue-500 transition-all text-center"
+                          >
+                            <doc.icon size={40} className="mx-auto mb-3 text-blue-400 group-hover:scale-110 transition" />
+                            <p className="font-medium text-sm">{doc.label}</p>
+                            <p className="text-xs text-gray-500 mt-1 truncate">{doc.file}</p>
+                          </a>
+                        ))}
                       </div>
                     )}
                   </div>
-                </div>
+                )}
+
+                {activeTab === "declaration" && (
+                  <div className="max-w-2xl mx-auto text-center py-10">
+                    <div className={`text-6xl mb-6 ${selectedUser.declarationAccepted ? "text-green-500" : "text-red-500"}`}>
+                      {selectedUser.declarationAccepted ? "✓" : "✗"}
+                    </div>
+                    <h3 className="text-2xl font-bold mb-6">
+                      Declaration {selectedUser.declarationAccepted ? "Accepted" : "Not Accepted"}
+                    </h3>
+                    <div className="space-y-4 text-left bg-gray-800/50 rounded-2xl p-8">
+                      <p><strong>Name:</strong> {selectedUser.declarationName || "—"}</p>
+                      <p><strong>Location:</strong> {selectedUser.declarationLocation || "—"}</p>
+                      <p><strong>Date:</strong> {selectedUser.declarationDate || "—"}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Export Modal */}
       <AnimatePresence>
-        {showExportModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setShowExportModal(false)}>
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
-              onClick={e => e.stopPropagation()}
-              className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 max-w-md w-full">
-              <h3 className="text-2xl font-bold mb-6">Export Data</h3>
+        {exportModal && (
+          <motion.div className="fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="bg-gray-900 border border-gray-800 rounded-3xl p-8 max-w-md w-full"
+            >
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                <DownloadCloud /> Export Users
+              </h3>
               <div className="space-y-5">
                 <label className="flex items-center gap-4 cursor-pointer">
-                  <input type="radio" checked={exportOption === "today"} onChange={() => setExportOption("today")} className="w-5 h-5" />
-                  <span>Today's Registrations Only</span>
+                  <input type="radio" checked={exportType === "today"} onChange={() => setExportType("today")} className="w-5 h-5 text-blue-500" />
+                  <span className="text-lg">Today's Submissions Only</span>
                 </label>
                 <label className="flex items-center gap-4 cursor-pointer">
-                  <input type="radio" checked={exportOption === "date"} onChange={() => setExportOption("date")} className="w-5 h-5" />
-                  <span>Select Specific Date</span>
+                  <input type="radio" checked={exportType === "date"} onChange={() => setExportType("date")} className="w-5 h-5 text-blue-500" />
+                  <span className="text-lg">Select Specific Date</span>
                 </label>
-                {exportOption === "date" && (
-                  <input type="date" value={exportDate} onChange={e => setExportDate(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/10 rounded-xl border border-white/20 focus:border-cyan-400 outline-none" />
+                {exportType === "date" && (
+                  <input
+                    type="date"
+                    value={exportDate}
+                    onChange={(e) => setExportDate(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl focus:border-blue-500 outline-none"
+                  />
                 )}
-                <div className="flex gap-4 justify-end pt-4">
-                  <button onClick={() => setShowExportModal(false)} className="px-6 py-3 bg-white/10 rounded-xl hover:bg-white/20">Cancel</button>
-                  <button onClick={handleExport} className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-600 rounded-xl hover:scale-105">Export CSV</button>
-                </div>
+              </div>
+              <div className="flex gap-4 mt-8 justify-end">
+                <button onClick={() => setExportModal(false)} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-xl">
+                  Cancel
+                </button>
+                <button onClick={handleExport} className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 rounded-xl font-medium">
+                  Download CSV
+                </button>
               </div>
             </motion.div>
           </motion.div>
