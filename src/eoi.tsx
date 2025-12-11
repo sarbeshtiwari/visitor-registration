@@ -50,7 +50,7 @@ const steps = [
 const EOIForm = () => {
   const [step, setStep] = useState(0);
   const [ip, setIp] = useState("Fetching...");
-  // const [eoiId, setEoiId] = useState<number | null>(null);
+  const [eoiId, setEoiId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormValues>({
     userType: "",
     name: "",
@@ -113,7 +113,7 @@ const EOIForm = () => {
       if (!formData.email.match(/^\S+@\S+\.\S+$/)) newErrors.email = "Enter a valid email";
       if (!formData.mobile.match(/^[6-9]\d{9}$/)) newErrors.mobile = "Valid 10-digit mobile required";
       if (!formData.pan.match(/[A-Z]{5}[0-9]{4}[A-Z]{1}/)) newErrors.pan = "Invalid PAN format";
-      if (!formData.aadhaar.match(/^\d{12}$/)) newErrors.aadhaar = "Aadhaar must be 12 digits";
+      // if (!formData.aadhaar.match(/^\d{12}$/)) newErrors.aadhaar = "Aadhaar must be 12 digits";
       if (!formData.address.trim()) newErrors.address = "Address is required";
       if (!formData.city.trim()) newErrors.city = "City is required";
     }
@@ -156,121 +156,122 @@ const EOIForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const nextStep = () => {
-    if (validateStep() && step < 4) {
-      setStep(step + 1);
-    }
-  };
+  // const nextStep = () => {
+  //   if (validateStep() && step < 4) {
+  //     setStep(step + 1);
+  //   }
+  // };
 
   const prevStep = () => {
     setStep(step - 1);
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!validateStep()) return; if (step < 4) { nextStep(); return; } console.log("EOI Submitted:", { ...formData, ip, submittedAt: new Date() }); alert("Thank you! Your Expression of Interest has been submitted successfully."); };
+  // const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!validateStep()) return; if (step < 4) { nextStep(); return; } console.log("EOI Submitted:", { ...formData, ip, submittedAt: new Date() }); alert("Thank you! Your Expression of Interest has been submitted successfully."); };
 
-  // please dont delete the below logic as it is working currently
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!validateStep()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateStep()) return;
 
-  //   // ====================== STEP 0 → API ======================
-  //   if (step === 0) {
-  //     const res = await fetch("http://localhost:3000/eoi/step1", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(formData)
-  //     });
-  //     const data = await res.json();
-  //     setEoiId(data.eoiId);
-  //     setStep(1);
-  //     return;
-  //   }
+    // ====================== STEP 0 → API ======================
+    if (step === 0) {
+      const res = await fetch("https://sar.ecis.in/api/suncity/eoi/step1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      setEoiId(data.eoiId);
+      setStep(1);
+      return;
+    }
 
-  //   // ====================== STEP 1 → API ======================
-  //   if (step === 1 && eoiId) {
-  //     await fetch("http://localhost:3000/eoi/step2", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ eoiId, ...formData })
-  //     });
-  //     setStep(2);
-  //     return;
-  //   }
+    // ====================== STEP 1 → API ======================
+    if (step === 1 && eoiId) {
+      await fetch("https://sar.ecis.in/api/suncity/eoi/step2", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eoiId, ...formData })
+      });
+      setStep(2);
+      return;
+    }
 
-  //   // ====================== STEP 2 → API ======================
-  //   if (step === 2 && eoiId) {
-  //     await fetch("http://localhost:3000/eoi/step3", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ eoiId, ...formData })
-  //     });
-  //     setStep(3);
-  //     return;
-  //   }
+    // ====================== STEP 2 → API ======================
+    if (step === 2 && eoiId) {
+      await fetch("https://sar.ecis.in/api/suncity/eoi/step3", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eoiId, ...formData })
+      });
+      setStep(3);
+      return;
+    }
 
-  //   // ====================== STEP 3 → API (UPLOAD FILES) ======================
-  //   if (step === 3 && eoiId) {
-  //     const form = new FormData();
-  //     form.append("eoiId", String(eoiId));
-  //     if (formData.aadhaarFile) form.append("aadhaarFile", formData.aadhaarFile);
-  //     if (formData.panFile) form.append("panFile", formData.panFile);
-  //     if (formData.userPhoto) form.append("userPhoto", formData.userPhoto);
-  //     if (formData.signature) form.append("signature", formData.signature);
+    // ====================== STEP 3 → API (UPLOAD FILES) ======================
+    if (step === 3 && eoiId) {
+      const form = new FormData();
+      form.append("eoiId", String(eoiId));
+      if (formData.aadhaarFile) form.append("aadhaarFile", formData.aadhaarFile);
+      if (formData.panFile) form.append("panFile", formData.panFile);
+      if (formData.userPhoto) form.append("userPhoto", formData.userPhoto);
+      if (formData.signature) form.append("signature", formData.signature);
 
-  //     await fetch("http://localhost:3000/eoi/documents", {
-  //       method: "POST",
-  //       body: form
-  //     });
+      await fetch("https://sar.ecis.in/api/suncity/eoi/documents", {
+        method: "POST",
+        body: form
+      });
 
-  //     setStep(4);
-  //     return;
-  //   }
+      setStep(4);
+      return;
+    }
 
-  //   // ====================== STEP 4 → API (DECLARATION) ======================
-  //   if (step === 4 && eoiId) {
-  //     await fetch("http://localhost:3000/eoi/declaration", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ eoiId, ...formData })
-  //     });
+    // ====================== STEP 4 → API (DECLARATION) ======================
+    if (step === 4 && eoiId) {
+      await fetch("https://sar.ecis.in/api/suncity/eoi/declaration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eoiId, ...formData })
+      });
 
-  //     // Final Submit
-  //     await fetch("http://localhost:3000/eoi/submit", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         eoiId,
-  //         ip,
-  //       })
-  //     });
+      // Final Submit
+      await fetch("https://sar.ecis.in/api/suncity/eoi/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eoiId,
+          ip,
+        })
+      });
 
-  //     alert("Thank you! Your Expression of Interest has been submitted successfully.");
-  //   }
-  // };
+      alert("Thank you! Your Expression of Interest has been submitted successfully.");
+    }
+  };
 
   return (
     <>
-    <div className="mb-8 px-4 pt-4">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-4">
+      <div className="flex justify-between items-center">
         <div>
           <img src="https://www.suncityprojects.com/images/logo.svg" alt="Company Logo" className="h-12 w-auto" />
         </div>
-        <div className="text-gray-600 text-sm">
-          Your IP: {ip}
+        <div>
+          <img src="https://www.suncityprojects.com/uploads/1759923905913-logo-jewel-of-india.png" alt="Project Logo" className="h-20 w-auto" />
         </div>
+        {/* <div className="text-gray-600 text-sm">
+          Your IP: {ip}
+        </div> */}
       </div>
     </div>
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-6xl mx-auto">
-
         <div className="mb-10">
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
+          <div className="flex items-center justify-center max-w-5xl mx-auto">
             {steps.map((label, i) => (
-              <div key={i} className="flex items-center flex-1">
+              <div key={i} className="flex items-center justify-center flex-1">
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold transition-all ${
-                    i <= step ? "bg-indigo-600" : "bg-gray-300"
+                    i <= step ? "bg-suncity-brown" : "bg-gray-300"
                   }`}
                 >
                   {i + 1}
@@ -281,7 +282,7 @@ const EOIForm = () => {
                 {i < steps.length - 1 && (
                   <div
                     className={`flex-1 h-1 mx-4 transition-all ${
-                      i < step ? "bg-indigo-600" : "bg-gray-300"
+                      i < step ? "bg-suncity-brown" : "bg-gray-300"
                     }`}
                   />
                 )}
@@ -348,7 +349,7 @@ const EOIForm = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                       placeholder="Enter full name"
                     />
                     {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
@@ -361,7 +362,7 @@ const EOIForm = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                       placeholder="you@example.com"
                     />
                     {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -374,7 +375,7 @@ const EOIForm = () => {
                       name="mobile"
                       value={formData.mobile}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                       placeholder="98XXXXXXXX"
                     />
                     {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
@@ -387,7 +388,7 @@ const EOIForm = () => {
                       name="pan"
                       value={formData.pan}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 uppercase"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg uppercases:border-suncity-brown uppercase"
                       placeholder="ABCDE1234F"
                     />
                     {errors.pan && <p className="text-red-500 text-sm mt-1">{errors.pan}</p>}
@@ -400,9 +401,9 @@ const EOIForm = () => {
                       name="aadhaar"
                       value={formData.aadhaar}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                      placeholder="XXXX XXXX XXXX"
-                      maxLength={12}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
+                      placeholder="XXXX"
+                      maxLength={4}
                     />
                     {errors.aadhaar && <p className="text-red-500 text-sm mt-1">{errors.aadhaar}</p>}
                   </div>
@@ -414,7 +415,7 @@ const EOIForm = () => {
                       value={formData.address}
                       onChange={handleChange}
                       rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                       placeholder="Full residential address"
                     />
                     {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
@@ -427,7 +428,7 @@ const EOIForm = () => {
                       name="city"
                       value={formData.city}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                       placeholder="e.g. Mumbai"
                     />
                     {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
@@ -446,12 +447,11 @@ const EOIForm = () => {
                       name="preference"
                       value={formData.preference}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     >
                       <option value="">Select unit type</option>
                       <option value="3bhk">3 BHK</option>
                       <option value="4bhk">4 BHK</option>
-                      <option value="penthouse">Penthouse</option>
                     </select>
                     {errors.preference && <p className="text-red-500 text-sm mt-1">{errors.preference}</p>}
                   </div>
@@ -462,7 +462,7 @@ const EOIForm = () => {
                       name="source"
                       value={formData.source}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     >
                       <option value="">Select source</option>
                       <option value="direct">Direct / Website</option>
@@ -482,7 +482,7 @@ const EOIForm = () => {
                           name="agentName"
                           value={formData.agentName}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                         />
                         {errors.agentName && <p className="text-red-500 text-sm mt-1">{errors.agentName}</p>}
                       </div>
@@ -493,7 +493,7 @@ const EOIForm = () => {
                           name="agentMobile"
                           value={formData.agentMobile}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                         />
                         {errors.agentMobile && <p className="text-red-500 text-sm mt-1">{errors.agentMobile}</p>}
                       </div>
@@ -504,7 +504,7 @@ const EOIForm = () => {
                           name="agentRERA"
                           value={formData.agentRERA}
                           onChange={handleChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                           placeholder="e.g. RERA-AGENT-12345"
                         />
                         {errors.agentRERA && <p className="text-red-500 text-sm mt-1">{errors.agentRERA}</p>}
@@ -525,7 +525,7 @@ const EOIForm = () => {
                         name="accountHolder"
                         value={formData.accountHolder}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                         placeholder="Enter account holder name"
                       />
                       {errors.accountHolder && <p className="text-red-500 text-sm mt-1">{errors.accountHolder}</p>}
@@ -537,7 +537,7 @@ const EOIForm = () => {
                         name="chequeNo"
                         value={formData.chequeNo}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                         placeholder="Enter cheque number"
                       />
                       {errors.chequeNo && <p className="text-red-500 text-sm mt-1">{errors.chequeNo}</p>}
@@ -549,7 +549,7 @@ const EOIForm = () => {
                         name="bankBranch"
                         value={formData.bankBranch}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                         placeholder="Enter bank branch"
                       />
                       {errors.bankBranch && <p className="text-red-500 text-sm mt-1">{errors.bankBranch}</p>}
@@ -561,7 +561,7 @@ const EOIForm = () => {
                         name="instrumentDate"
                         value={formData.instrumentDate}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                       />
                       {errors.instrumentDate && <p className="text-red-500 text-sm mt-1">{errors.instrumentDate}</p>}
                     </div>
@@ -579,7 +579,7 @@ const EOIForm = () => {
                       type="file"
                       name="aadhaarFile"
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     />
                     {errors.aadhaarFile && <p className="text-red-500 text-sm mt-1">{errors.aadhaarFile}</p>}
                   </div>
@@ -589,7 +589,7 @@ const EOIForm = () => {
                       type="file"
                       name="panFile"
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     />
                     {errors.panFile && <p className="text-red-500 text-sm mt-1">{errors.panFile}</p>}
                   </div>
@@ -599,7 +599,7 @@ const EOIForm = () => {
                       type="file"
                       name="userPhoto"
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     />
                     {errors.userPhoto && <p className="text-red-500 text-sm mt-1">{errors.userPhoto}</p>}
                   </div>
@@ -609,7 +609,7 @@ const EOIForm = () => {
                       type="file"
                       name="signature"
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     />
                     {errors.signature && <p className="text-red-500 text-sm mt-1">{errors.signature}</p>}
                   </div>
@@ -619,7 +619,7 @@ const EOIForm = () => {
                       type="file"
                       name="chequePhoto"
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     />
                     {errors.chequePhoto && <p className="text-red-500 text-sm mt-1">{errors.chequePhoto}</p>}
                   </div>
@@ -630,7 +630,7 @@ const EOIForm = () => {
                         type="file"
                         name="reraCertificate"
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                       />
                       {errors.reraCertificate && <p className="text-red-500 text-sm mt-1">{errors.reraCertificate}</p>}
                     </div>
@@ -652,7 +652,7 @@ const EOIForm = () => {
                     name="declarationAccepted"
                     checked={formData.declarationAccepted}
                     onChange={handleChange}
-                    className="w-5 h-5 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-5 h-5 border border-gray-300 rounded focus:border-suncity-brown"
                   />
                   <span className="text-gray-700 text-sm">I agree</span>
                 </label>
@@ -666,7 +666,7 @@ const EOIForm = () => {
                     name="declarationName"
                     value={formData.declarationName}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     placeholder="Enter name"
                   />
                   {errors.declarationName && <p className="text-red-500 text-sm mt-1">{errors.declarationName}</p>}
@@ -678,7 +678,7 @@ const EOIForm = () => {
                     name="declarationLocation"
                     value={formData.declarationLocation}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                     placeholder="Enter location"
                   />
                   {errors.declarationLocation && <p className="text-red-500 text-sm mt-1">{errors.declarationLocation}</p>}
@@ -690,7 +690,7 @@ const EOIForm = () => {
                     name="declarationDate"
                     value={formData.declarationDate}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
                   />
                   {errors.declarationDate && <p className="text-red-500 text-sm mt-1">{errors.declarationDate}</p>}
                 </div>
@@ -714,7 +714,7 @@ const EOIForm = () => {
 
               <button
                 type="submit"
-                className="px-10 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition shadow-md"
+                className="px-10 py-3 bg-suncity-brown text-white font-medium rounded-lg hover:bg-black transition shadow-md"
               >
                 {step === 4 ? "Submit EOI" : "Next →"}
               </button>

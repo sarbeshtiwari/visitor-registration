@@ -3,3 +3,11 @@
 video {
   transform: scaleX(-1); /* optional selfie mirror */
 }
+
+@theme {
+  --color-suncity-brown: #775d42; 
+}
+
+input:focus{
+  box-shadow: none;
+}
