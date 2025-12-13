@@ -50,6 +50,7 @@ const steps = [
 const EOIForm = () => {
   const [step, setStep] = useState(0);
   const [ip, setIp] = useState("Fetching...");
+  const [loading, setLoading] = useState(false);
   const [eoiId, setEoiId] = useState<number | null>(null);
   const [formData, setFormData] = useState<FormValues>({
     userType: "",
@@ -167,13 +168,11 @@ const EOIForm = () => {
     setErrors({});
   };
 
-  // const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); if (!validateStep()) return; if (step < 4) { nextStep(); return; } console.log("EOI Submitted:", { ...formData, ip, submittedAt: new Date() }); alert("Thank you! Your Expression of Interest has been submitted successfully."); };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep()) return;
+    setLoading(true)
 
-    // ====================== STEP 0 → API ======================
     if (step === 0) {
       const res = await fetch("https://sar.ecis.in/api/suncity/eoi/step1", {
         method: "POST",
@@ -183,10 +182,10 @@ const EOIForm = () => {
       const data = await res.json();
       setEoiId(data.eoiId);
       setStep(1);
+      setLoading(false);
       return;
     }
 
-    // ====================== STEP 1 → API ======================
     if (step === 1 && eoiId) {
       await fetch("https://sar.ecis.in/api/suncity/eoi/step2", {
         method: "POST",
@@ -194,10 +193,10 @@ const EOIForm = () => {
         body: JSON.stringify({ eoiId, ...formData })
       });
       setStep(2);
+      setLoading(false);
       return;
     }
 
-    // ====================== STEP 2 → API ======================
     if (step === 2 && eoiId) {
       await fetch("https://sar.ecis.in/api/suncity/eoi/step3", {
         method: "POST",
@@ -205,10 +204,10 @@ const EOIForm = () => {
         body: JSON.stringify({ eoiId, ...formData })
       });
       setStep(3);
+      setLoading(false);
       return;
     }
 
-    // ====================== STEP 3 → API (UPLOAD FILES) ======================
     if (step === 3 && eoiId) {
       const form = new FormData();
       form.append("eoiId", String(eoiId));
@@ -216,17 +215,15 @@ const EOIForm = () => {
       if (formData.panFile) form.append("panFile", formData.panFile);
       if (formData.userPhoto) form.append("userPhoto", formData.userPhoto);
       if (formData.signature) form.append("signature", formData.signature);
-
       await fetch("https://sar.ecis.in/api/suncity/eoi/documents", {
         method: "POST",
         body: form
       });
-
       setStep(4);
+      setLoading(false);
       return;
     }
 
-    // ====================== STEP 4 → API (DECLARATION) ======================
     if (step === 4 && eoiId) {
       await fetch("https://sar.ecis.in/api/suncity/eoi/declaration", {
         method: "POST",
@@ -234,7 +231,6 @@ const EOIForm = () => {
         body: JSON.stringify({ eoiId, ...formData })
       });
 
-      // Final Submit
       await fetch("https://sar.ecis.in/api/suncity/eoi/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -243,6 +239,7 @@ const EOIForm = () => {
           ip,
         })
       });
+      setLoading(false);
 
       alert("Thank you! Your Expression of Interest has been submitted successfully.");
     }
@@ -256,7 +253,7 @@ const EOIForm = () => {
           <img src="https://www.suncityprojects.com/images/logo.svg" alt="Company Logo" className="h-12 w-auto" />
         </div>
         <div>
-          <img src="https://www.suncityprojects.com/uploads/1759923905913-logo-jewel-of-india.png" alt="Project Logo" className="h-20 w-auto" />
+          <img src="/visitor/logo.png" alt="Project Logo" className="h-20 w-auto" />
         </div>
         {/* <div className="text-gray-600 text-sm">
           Your IP: {ip}
@@ -395,7 +392,7 @@ const EOIForm = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Aadhaar (Last 4 digits optional) *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Aadhaar (Last 4 digits optional)</label>
                     <input
                       type="text"
                       name="aadhaar"
@@ -639,64 +636,64 @@ const EOIForm = () => {
               </div>
             )}
 
-          {step === 4 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Declaration</h2>
-              <p className="text-gray-700 text-sm mb-4">
-                I hereby declare that all the information provided above is true, complete, and accurate to the best of my knowledge. I understand that providing false or misleading information may result in consequences as per the relevant rules and regulations.
-              </p>
-              <div>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="declarationAccepted"
-                    checked={formData.declarationAccepted}
-                    onChange={handleChange}
-                    className="w-5 h-5 border border-gray-300 rounded focus:border-suncity-brown"
-                  />
-                  <span className="text-gray-700 text-sm">I agree</span>
-                </label>
-                {errors.declarationAccepted && <p className="text-red-500 text-sm mt-1">{errors.declarationAccepted}</p>}
+            {step === 4 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Declaration</h2>
+                <p className="text-gray-700 text-sm mb-4">
+                  I hereby declare that all the information provided above is true, complete, and accurate to the best of my knowledge. I understand that providing false or misleading information may result in consequences as per the relevant rules and regulations.
+                </p>
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      name="declarationAccepted"
+                      checked={formData.declarationAccepted}
+                      onChange={handleChange}
+                      className="w-5 h-5 border border-gray-300 rounded focus:border-suncity-brown"
+                    />
+                    <span className="text-gray-700 text-sm">I agree</span>
+                  </label>
+                  {errors.declarationAccepted && <p className="text-red-500 text-sm mt-1">{errors.declarationAccepted}</p>}
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                    <input
+                      type="text"
+                      name="declarationName"
+                      value={formData.declarationName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
+                      placeholder="Enter name"
+                    />
+                    {errors.declarationName && <p className="text-red-500 text-sm mt-1">{errors.declarationName}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+                    <input
+                      type="text"
+                      name="declarationLocation"
+                      value={formData.declarationLocation}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
+                      placeholder="Enter location"
+                    />
+                    {errors.declarationLocation && <p className="text-red-500 text-sm mt-1">{errors.declarationLocation}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input
+                      type="date"
+                      name="declarationDate"
+                      value={formData.declarationDate}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
+                    />
+                    {errors.declarationDate && <p className="text-red-500 text-sm mt-1">{errors.declarationDate}</p>}
+                  </div>
+                </div>
               </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
-                  <input
-                    type="text"
-                    name="declarationName"
-                    value={formData.declarationName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
-                    placeholder="Enter name"
-                  />
-                  {errors.declarationName && <p className="text-red-500 text-sm mt-1">{errors.declarationName}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
-                  <input
-                    type="text"
-                    name="declarationLocation"
-                    value={formData.declarationLocation}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
-                    placeholder="Enter location"
-                  />
-                  {errors.declarationLocation && <p className="text-red-500 text-sm mt-1">{errors.declarationLocation}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
-                  <input
-                    type="date"
-                    name="declarationDate"
-                    value={formData.declarationDate}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-suncity-brown"
-                  />
-                  {errors.declarationDate && <p className="text-red-500 text-sm mt-1">{errors.declarationDate}</p>}
-                </div>
-              </div>
-            </div>
-          )}
+            )}
 
             <div className="flex justify-between mt-12 pt-8 border-t border-gray-200">
               <button
@@ -713,6 +710,7 @@ const EOIForm = () => {
               </button>
 
               <button
+                disabled={loading}
                 type="submit"
                 className="px-10 py-3 bg-suncity-brown text-white font-medium rounded-lg hover:bg-black transition shadow-md"
               >
