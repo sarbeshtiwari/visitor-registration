@@ -16,100 +16,90 @@ export default function Login() {
 
     setIsLoading(true);
 
-    // Simulate API delay
-    setTimeout(() => {
-      if (email === "admin@gmail.com" && password === "123456") {
-        localStorage.setItem("token", "logged_in_user");
-        navigate("/dashboard");
-      } else {
-        alert("Invalid credentials. Try: admin@gmail.com / 123456");
+    try {
+      const res = await fetch("https://sar.ecis.in/api/suncity/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Login failed");
       }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      localStorage.setItem("name", data.name);
+
+      navigate("/dashboard");
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center p-4">
-      {/* Background decorative orbs */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse animation-delay-4000"></div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-purple-700 via-indigo-600 to-pink-500 relative overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-[-200px] left-[-200px] w-[500px] h-[500px] bg-purple-400 rounded-full opacity-60 animate-spin-slow"></div>
+        <div className="absolute bottom-[-200px] right-[-200px] w-[500px] h-[500px] bg-pink-400 rounded-full opacity-60 animate-ping-slow"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
-        {/* Glassmorphic Card */}
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 md:p-10">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mb-4 backdrop-blur-md">
+      <div className="relative z-10 w-full max-w-md p-6">
+        <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl shadow-2xl p-8 space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 mx-auto flex items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md">
               <Lock className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-white/70">Sign in to your admin dashboard</p>
+            <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
+            <p className="text-white/70">Sign in to your admin panel</p>
           </div>
-
-          <div className="space-y-6">
-            {/* Email Field */}
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-white/50 group-focus-within:text-white transition-colors" />
-              </div>
+          <div className="space-y-4">
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
               <input
                 type="email"
-                placeholder="Email address"
+                placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:border-white focus:bg-white/20 transition-all duration-300 backdrop-blur-md"
                 onKeyPress={(e) => e.key === "Enter" && handleLogin()}
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white focus:bg-white/20 transition-all"
               />
             </div>
-
-            {/* Password Field */}
-            <div className="relative group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-white/50 group-focus-within:text-white transition-colors" />
-              </div>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" />
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-2xl text-white placeholder-white/50 focus:outline-none focus:border-white focus:bg-white/20 transition-all duration-300 backdrop-blur-md"
                 onKeyPress={(e) => e.key === "Enter" && handleLogin()}
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white focus:bg-white/20 transition-all"
               />
             </div>
-
-            {/* Login Button */}
-            <button
-              onClick={handleLogin}
-              disabled={isLoading}
-              className="w-full bg-white text-purple-600 font-semibold py-4 rounded-2xl hover:bg-opacity-90 transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span>Signing in...</span>
-                </div>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" />
-                  <span>Sign In</span>
-                </>
-              )}
-            </button>
-
-            {/* Hint (for demo purposes) */}
-            <div className="text-center mt-6">
-              <p className="text-white/60 text-sm">
-                Demo credentials: <span className="font-mono text-white/90">admin@gmail.com</span> /{" "}
-                <span className="font-mono text-white/90">123456</span>
-              </p>
-            </div>
           </div>
+          <button
+            onClick={handleLogin}
+            disabled={isLoading}
+            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white text-purple-700 font-semibold shadow-lg hover:bg-opacity-90 transition-transform duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 border-2 border-purple-700 border-t-transparent rounded-full animate-spin"></div>
+                <span>Signing in...</span>
+              </div>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5" />
+                <span>Sign In</span>
+              </>
+            )}
+          </button>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-white/60 mt-8 text-sm">
+        <p className="text-center text-white/50 mt-6 text-sm">
           © 2025 Admin Panel • Secured Login
         </p>
       </div>
