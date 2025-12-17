@@ -294,7 +294,7 @@ const VisitorRegistrationForm = () => {
                         key={opt}
                         className={`border-2 rounded-xl p-6 text-center cursor-pointer transition-all ${
                           formData.referral === opt
-                            ? "border-indigo-600 bg-indigo-50"
+                            ? "border-suncity-brown"
                             : "border-gray-300 hover:border-gray-400"
                         }`}
                       >
@@ -326,7 +326,7 @@ const VisitorRegistrationForm = () => {
                           placeholder="Broker Name"
                           value={formData.brokerName}
                           onChange={handleChange}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-800 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-800 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-400 focus:border-suncity-brown focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                           required
                         />                        
                         {errors.brokerName && (
@@ -341,7 +341,7 @@ const VisitorRegistrationForm = () => {
                           placeholder="Broker Phone"
                           value={formData.brokerPhone}
                           onChange={handleChange}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-800 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-800 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-400 focus:border-suncity-brown focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                           required
                         />
                         {errors.brokerPhone && (
@@ -356,7 +356,7 @@ const VisitorRegistrationForm = () => {
                           placeholder="Broker ID (optional)"
                           value={formData.brokerId}
                           onChange={handleChange}
-                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-800 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-400 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-800 placeholder-gray-400 shadow-sm transition-all duration-200 hover:border-gray-400 focus:border-suncity-brown focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                         />
                       </div>
                     </motion.div>

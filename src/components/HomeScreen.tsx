@@ -2,7 +2,7 @@ import { Plus, FileText, Users, Building2, ArrowRight } from "lucide-react";
 
 const HomeScreen = ({ goToForm }: {goToForm: any}) => {
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-6">
+    <div className="homebanner relative overflow-hidden flex items-center justify-center" style={{background: 'url(../visitor/public/bg.webp) center/cover no-repeat'}}>
       {/* Animated Background Layers */}
       {/* <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-blue-900/10 to-purple-900/20" />
@@ -22,12 +22,14 @@ const HomeScreen = ({ goToForm }: {goToForm: any}) => {
             </div>
           </div> */}
 
-          <h1 className="text-6xl md:text-8xl font-black text-suncity-brown leading-tight">
+          <div className="project-logo mx-auto w-100"><img src="../visitor/public/logo-monarch.svg" alt="" /></div>
+
+          {/* <h1 className="text-6xl md:text-8xl font-black text-suncity-brown leading-tight">
             SUNCITY
             <span className="block text-black text-7xl md:text-9xl">
               PROJECTS
             </span>
-          </h1>
+          </h1> */}
 
           {/* <p className="text-xl md:text-2xl text-slate-300 font-light max-w-3xl mx-auto leading-relaxed">
             Register projects in seconds. Track progress in real-time. 

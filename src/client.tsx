@@ -16,7 +16,7 @@ const Client = () => {
   // }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100">
+    <div className="flex flex-col bg-gray-100">
       <TopBar />
       <div className="flex-1">
         {screen === "home" && <HomeScreen goToForm={() => setScreen("form")} />}
