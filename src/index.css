@@ -6,6 +6,8 @@ video {
 
 @theme {
   --color-suncity-brown: #775d42; 
+  --color-brown: #dfb674;
+  --color-brown-600: #c1944a;
 }
 
 input:focus{
