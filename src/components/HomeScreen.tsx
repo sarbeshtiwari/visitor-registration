@@ -57,9 +57,9 @@ const HomeScreen = ({ goToForm }: {goToForm: any}) => {
         {/* Stats Grid - Glass Cards with Hover Lift */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
           {[
-            { icon: FileText, label: "Active Projects", value: "142", color: "from-cyan-400 to-blue-500" },
-            { icon: Users, label: "Team Members", value: "89+", color: "from-purple-400 to-pink-500" },
-            { icon: Building2, label: "Live Sites", value: "12", color: "from-emerald-400 to-teal-500" },
+            { icon: FileText, label: "Active Projects", value: "142", color: "from-brown to-brown-600" },
+            { icon: Users, label: "Team Members", value: "89+", color: "from-brown to-brown-600" },
+            { icon: Building2, label: "Live Sites", value: "12", color: "from-brown to-brown-600" },
           ].map((stat, i) => (
             <div
               key={i}
