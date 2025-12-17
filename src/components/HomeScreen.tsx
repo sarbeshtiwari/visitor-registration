@@ -2,7 +2,7 @@ import { Plus, FileText, Users, Building2, ArrowRight } from "lucide-react";
 
 const HomeScreen = ({ goToForm }: {goToForm: any}) => {
   return (
-    <div className="homebanner relative overflow-hidden flex items-center justify-center" style={{background: 'url(../visitor/public/bg.webp) center/cover no-repeat'}}>
+    <div className="homebanner relative overflow-hidden flex items-center justify-center" style={{background: 'url(/visitor/bg.webp) center/cover no-repeat'}}>
       {/* Animated Background Layers */}
       {/* <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-blue-900/10 to-purple-900/20" />
@@ -22,7 +22,7 @@ const HomeScreen = ({ goToForm }: {goToForm: any}) => {
             </div>
           </div> */}
 
-          <div className="project-logo mx-auto w-100"><img src="../visitor/public/logo-monarch.svg" alt="" /></div>
+          <div className="project-logo mx-auto w-100"><img src="/visitor/logo-monarch.svg" alt="" /></div>
 
           {/* <h1 className="text-6xl md:text-8xl font-black text-suncity-brown leading-tight">
             SUNCITY
