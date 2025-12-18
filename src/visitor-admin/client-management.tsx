@@ -9,7 +9,6 @@ import {
   User,
   Mail,
   Phone,
-  CreditCard,
   MapPin,
   // Building,
   // Calendar,
@@ -18,8 +17,6 @@ import {
   FileCheck,
   UserCheck,
   // Image,
-  Signature,
-  Banknote,
   IdCard,
   DownloadCloud
 } from "lucide-react";
