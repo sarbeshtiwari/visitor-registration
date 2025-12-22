@@ -2,63 +2,43 @@ import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
-  // Download,
   X,
   Eye,
-  FileText,
   User,
   Mail,
   Phone,
   MapPin,
-  // Building,
-  // Calendar,
   ChevronLeft,
   ChevronRight,
   FileCheck,
-  UserCheck,
-  // Image,
-  IdCard,
   DownloadCloud
 } from "lucide-react";
 
 interface Visitor {
-  id: string;
-
-  // Step 1 – Referral
-  referral: string;
+  id: number;
+  referral: "direct" | "broker";
   brokerName?: string;
   brokerPhone?: string;
   brokerId?: string;
-
-  // Step 2 – Personal Info
+  directSource?: string;
+  directSourceOthers?: string;
   name: string;
   email: string;
   phone: string;
-  aadharLast4: string;
-  address: string;
-  occupation?: string;
-  budget?: string;
-
-  // Step 3 – Project Interest
+  city: string;
+  cityOther?: string;
+  pincode: string;
   projectConfig?: string;
-
-  // Step 4 – Photo
-  photo?: string;
-
-  // Step 5 – Declaration
-  declarationAccepted?: boolean;
-
-  // Final Submit
+  projectDuration?: string;
+  notes?: string;
   ip?: string;
+  otpVerified?: boolean;
   submittedAt?: string;
 }
 
-
-const FILE_BASE_URL = "https://sar.ecis.in/api/suncity/uploads/visitor/";
-
 export default function VisitorUsersList() {
   const [users, setUsers] = useState<Visitor[]>([]);
-const [selectedUser, setSelectedUser] = useState<Visitor | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Visitor | null>(null);
   const [search, setSearch] = useState("");
   const [exportModal, setExportModal] = useState(false);
   const [exportDate, setExportDate] = useState("");
@@ -104,107 +84,98 @@ const [selectedUser, setSelectedUser] = useState<Visitor | null>(null);
   const totalPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
   const paginated = filteredUsers.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE);
 
-const handleExport = () => {
-  let exportList = users;
+  const handleExport = () => {
+    let exportList = users;
+    if (exportType === "today") {
+      const today = new Date().toISOString().split("T")[0];
+      exportList = users.filter(
+        u => (u.submittedAt || "").startsWith(today)
+      );
+    } else if (exportDate) {
+      exportList = users.filter(
+        u => (u.submittedAt || "").startsWith(exportDate)
+      );
+    }
 
-  // Date filtering (uses submittedAt)
-  if (exportType === "today") {
-    const today = new Date().toISOString().split("T")[0];
-    exportList = users.filter(
-      u => (u.submittedAt || "").startsWith(today)
+    if (exportList.length === 0) {
+      alert("No visitors found for the selected date.");
+      return;
+    }
+
+    const headers = [
+      [
+        "ID",
+        "Name",
+        "Email",
+        "Phone",
+        "Referral",
+        "Direct Source",
+        "Direct Source Others",
+        "Broker Name",
+        "Broker Phone",
+        "Broker Company",
+        "City",
+        "City Other",
+        "Pincode",
+        "Project Config",
+        "Project Duration",
+        "OTP Verified",
+        "IP",
+        "Submitted At",
+      ].join(",")
+    ];
+
+    const rows = exportList.map(v =>
+      [
+        v.id,
+        v.name,
+        v.email,
+        v.phone,
+        v.referral,
+        v.directSource || "",
+        v.directSourceOthers || "",
+        v.brokerName || "",
+        v.brokerPhone || "",
+        v.brokerId || "",
+        v.city,
+        v.cityOther || "",
+        v.pincode,
+        v.projectConfig || "",
+        v.projectDuration || "",
+        v.otpVerified ? "Yes" : "No",
+        v.ip || "",
+        v.submittedAt || "",
+      ]
+        .map(val => `"${String(val).replace(/"/g, '""')}"`)
+        .join(",")
     );
-  } else if (exportDate) {
-    exportList = users.filter(
-      u => (u.submittedAt || "").startsWith(exportDate)
-    );
-  }
 
-  if (exportList.length === 0) {
-    alert("No visitors found for the selected date.");
-    return;
-  }
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      headers.concat(rows).join("\n");
 
-  // CSV Header
-  const headers = [
-    [
-      "ID",
-      "Name",
-      "Email",
-      "Phone",
-      "Referral",
-      "Broker Name",
-      "Broker Phone",
-      "Broker ID",
-      "Aadhaar Last 4",
-      "Address",
-      "Occupation",
-      "Budget",
-      "Project Config",
-      "Declaration Accepted",
-      "IP",
-      "Submitted At"
-    ].join(",")
-  ];
+    const link = document.createElement("a");
+    link.href = encodeURI(csvContent);
+    link.download = `visitors-export-${
+      exportType === "today" ? "today" : exportDate
+    }.csv`;
 
-  // CSV Rows
-  const rows = exportList.map(v =>
-    [
-      v.id,
-      v.name,
-      v.email,
-      v.phone,
-      v.referral,
-      v.brokerName || "",
-      v.brokerPhone || "",
-      v.brokerId || "",
-      v.aadharLast4,
-      v.address,
-      v.occupation || "",
-      v.budget || "",
-      v.projectConfig || "",
-      v.declarationAccepted ? "Yes" : "No",
-      v.ip || "",
-      v.submittedAt || ""
-    ]
-      .map(val => `"${String(val).replace(/"/g, '""')}"`)
-      .join(",")
-  );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-  const csvContent =
-    "data:text/csv;charset=utf-8," +
-    headers.concat(rows).join("\n");
-
-  const link = document.createElement("a");
-  link.href = encodeURI(csvContent);
-  link.download = `visitors-export-${
-    exportType === "today" ? "today" : exportDate
-  }.csv`;
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-
-  setExportModal(false);
-};
-
-
-  const fileUrl = (filename?: string) => filename ? `${FILE_BASE_URL}${filename}` : null;
-
-  const documents = selectedUser ? [
-    { label: "User Photo", icon: UserCheck, file: selectedUser.photo },
-  ].filter(d => d.file) : [];
+    setExportModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-100">
-      {/* Main Container */}
       <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
           <div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Registered Users
             </h1>
-            <p className="text-gray-400 mt-2">Manage and view all EOI submissions</p>
+            <p className="text-gray-400 mt-2">Manage and view all visitors submissions</p>
           </div>
           <button
             onClick={() => setExportModal(true)}
@@ -215,12 +186,11 @@ const handleExport = () => {
           </button>
         </div>
 
-        {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" size={22} />
           <input
             type="text"
-            placeholder="Search by name, email, mobile, PAN..."
+            placeholder="Search by name, email, mobile..."
             className="w-full pl-14 pr-6 py-4 bg-gray-800/50 backdrop-blur border border-gray-700 rounded-2xl focus:outline-none focus:border-blue-500 transition-colors text-lg"
             value={search}
             onChange={(e) => {
@@ -230,7 +200,6 @@ const handleExport = () => {
           />
         </div>
 
-        {/* Users Grid / Cards */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -248,111 +217,98 @@ const handleExport = () => {
           </div>
         ) : (
           <>
-{/* Users Table - Modern & Responsive */}
-<div className="bg-gray-800/40 backdrop-blur border border-gray-700 rounded-2xl overflow-hidden">
-  <div className="overflow-x-auto">
-    <table className="w-full text-left">
-      {/* Sticky Header */}
-      <thead className="bg-gray-900/80 backdrop-blur border-b border-gray-700 sticky top-0">
-        <tr>
-          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
-            ID
-          </th>
-          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
-            Name
-          </th>
-          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
-            Phone
-          </th>
-          <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400 hidden md:table-cell">
-            Referral
-          </th>
-          <th className="px-6 py-5 text-right text-xs font-medium uppercase tracking-wider text-gray-400">
-            Actions
-          </th>
-        </tr>
-      </thead>
+            <div className="bg-gray-800/40 backdrop-blur border border-gray-700 rounded-2xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-gray-900/80 backdrop-blur border-b border-gray-700 sticky top-0">
+                    <tr>
+                      <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
+                        S. No
+                      </th>
+                      <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
+                        Name
+                      </th>
+                      <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
+                        Email
+                      </th>
+                      <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400">
+                        Phone
+                      </th>
+                      <th className="px-6 py-5 text-xs font-medium uppercase tracking-wider text-gray-400 hidden md:table-cell">
+                        Referral
+                      </th>
+                      <th className="px-6 py-5 text-right text-xs font-medium uppercase tracking-wider text-gray-400">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {paginated.map((user, index) => (
+                      <motion.tr
+                        key={user.id}
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="hover:bg-gray-800/60 transition-all duration-200 group"
+                      >
+                        <td className="px-6 py-5 text-xs font-mono text-blue-400">
+                          {index+1}
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                              {user.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-white group-hover:text-blue-400 transition-colors">
+                                {user.name}
+                              </p>
+                              <p className="text-xs text-gray-500 lg:hidden">{user.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-gray-300 hidden lg:table-cell">
+                          <div className="flex items-center gap-2">
+                            <Mail size={14} className="text-gray-500" />
+                            <span className="truncate max-w-xs">{user.email}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-2 text-gray-300">
+                            <Phone size={14} className="text-gray-500" />
+                            {user.phone}
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 hidden sm:table-cell">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
+                            {user.referral}
+                          </span>
+                        </td>
+                        <td className="px-6 py-5 text-right">
+                          <button
+                            onClick={() => setSelectedUser(user)}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-blue-500/25"
+                          >
+                            <Eye size={16} />
+                            <span className="hidden sm:inline">View</span>
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-      <tbody className="divide-y divide-gray-700">
-        {paginated.map((user) => (
-          <motion.tr
-            key={user.id}
-            layout
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="hover:bg-gray-800/60 transition-all duration-200 group"
-          >
-            {/* ID */}
-            <td className="px-6 py-5 text-xs font-mono text-blue-400">
-              {user.id}
-            </td>
-
-            {/* Name */}
-            <td className="px-6 py-5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                  {user.name.charAt(0)}
+              {paginated.length === 0 && !loading && (
+                <div className="text-center py-20">
+                  <div className="text-6xl mb-4 opacity-20">📋</div>
+                  <p className="text-xl text-gray-500">No users found</p>
+                  {search && <p className="text-sm text-gray-600 mt-2">Try adjusting your search query</p>}
                 </div>
-                <div>
-                  <p className="font-semibold text-white group-hover:text-blue-400 transition-colors">
-                    {user.name}
-                  </p>
-                  {/* <p className="text-xs text-gray-500 lg:hidden">{user.email}</p> */}
-                </div>
-              </div>
-            </td>
+              )}
+            </div>
 
-            {/* Email - Hidden on small screens */}
-            {/* <td className="px-6 py-5 text-gray-300 hidden lg:table-cell">
-              <div className="flex items-center gap-2">
-                <Mail size={14} className="text-gray-500" />
-                <span className="truncate max-w-xs">{user.email}</span>
-              </div>
-            </td> */}
-
-            {/* Phone */}
-            <td className="px-6 py-5">
-              <div className="flex items-center gap-2 text-gray-300">
-                <Phone size={14} className="text-gray-500" />
-                {user.phone}
-              </div>
-            </td>
-
-            {/* User Type - Hidden on very small screens */}
-            <td className="px-6 py-5 hidden sm:table-cell">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">
-                {user.referral}
-              </span>
-            </td>
-
-            {/* Actions */}
-            <td className="px-6 py-5 text-right">
-              <button
-                onClick={() => setSelectedUser(user)}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl text-sm font-medium transition-all shadow-md hover:shadow-blue-500/25"
-              >
-                <Eye size={16} />
-                <span className="hidden sm:inline">View</span>
-              </button>
-            </td>
-          </motion.tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-
-  {/* Empty State */}
-  {paginated.length === 0 && !loading && (
-    <div className="text-center py-20">
-      <div className="text-6xl mb-4 opacity-20">📋</div>
-      <p className="text-xl text-gray-500">No users found</p>
-      {search && <p className="text-sm text-gray-600 mt-2">Try adjusting your search query</p>}
-    </div>
-  )}
-</div>
-
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-4 mt-10">
                 <button
@@ -378,7 +334,6 @@ const handleExport = () => {
         )}
       </div>
 
-      {/* User Detail Modal with Tabs */}
       <AnimatePresence>
         {selectedUser && (
           <motion.div
@@ -395,7 +350,6 @@ const handleExport = () => {
               exit={{ scale: 0.9 }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
               <div className="sticky top-0 bg-gray-900/95 backdrop-blur border-b border-gray-800 p-6 flex justify-between items-center">
                 <div>
                   <h2 className="text-3xl font-bold text-white">{selectedUser.name}</h2>
@@ -408,12 +362,9 @@ const handleExport = () => {
                   <X size={20} />
                 </button>
               </div>
-
-              {/* Tabs */}
               <div className="flex border-b border-gray-800">
                 {[
                   { id: "info", label: "Personal Info", icon: User },
-                  { id: "documents", label: "Documents", icon: FileText },
                   { id: "declaration", label: "Declaration", icon: FileCheck }
                 ].map(tab => (
                   <button
@@ -430,7 +381,6 @@ const handleExport = () => {
                   </button>
                 ))}
               </div>
-
               <div className="p-8">
                 {activeTab === "info" && (
                   <div className="grid md:grid-cols-2 gap-8">
@@ -439,9 +389,8 @@ const handleExport = () => {
                       {[
                         ["Email", selectedUser.email, Mail] as const,
                         ["Phone", selectedUser.phone, Phone] as const,
-                        ["Aadhaar", selectedUser.aadharLast4, IdCard] as const,
-                        ["Address", selectedUser.address, MapPin] as const,
-                        ["Budget", selectedUser.budget, MapPin] as const,
+                        ["City", selectedUser.city === "others" ? selectedUser.cityOther : selectedUser.city, MapPin] as const,
+                        ["Pincode", selectedUser.pincode, MapPin] as const,
                       ].map(([label, value, Icon]) => {
                         const Component = Icon;
                         return (
@@ -449,20 +398,23 @@ const handleExport = () => {
                             <Component size={20} className="text-gray-500" />
                             <div>
                               <p className="text-sm text-gray-500">{label}</p>
-                              <p className="font-medium">{value}</p>
+                              <p className="font-medium text-gray-100">{value}</p>
                             </div>
                           </div>
                         );
                       })}
-                    </div>
+                  </div>
                     <div className="space-y-5">
                       <h3 className="text-xl font-semibold text-blue-400">Additional Info</h3>
                       {[
-                        ["Preference", selectedUser.projectConfig],
-                        ["Source", selectedUser.referral],
-                        ["Agent ID", selectedUser.brokerId || "N/A"],
-                        ["Agent Name", selectedUser.brokerName || "N/A"],
-                        ["Agent number", selectedUser.brokerPhone || "N/A"],
+                        ["Project Configuration", selectedUser.projectConfig || "—"],
+                        ["Booking Timeline", selectedUser.projectDuration || "—"],
+                        ["Referral Type", selectedUser.referral],
+                        ["Direct Source", selectedUser.directSource || "—"],
+                        ["Source Details", selectedUser.directSourceOthers || "—"],
+                        ["Broker Name", selectedUser.brokerName || "—"],
+                        ["Broker Phone", selectedUser.brokerPhone || "—"],
+                        ["Broker Company", selectedUser.brokerId || "—"],
                       ].map(([label, value]) => (
                         <div key={label}>
                           <p className="text-sm text-gray-500">{label}</p>
@@ -472,43 +424,19 @@ const handleExport = () => {
                     </div>
                   </div>
                 )}
-
-                {activeTab === "documents" && (
-                  <div>
-                    <h3 className="text-xl font-semibold text-blue-400 mb-6">Uploaded Documents</h3>
-                    {documents.length === 0 ? (
-                      <p className="text-gray-500 text-center py-10">No documents uploaded</p>
-                    ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                        {documents.map((doc) => (
-                          <a
-                            key={doc.file}
-                            href={fileUrl(doc.file)!}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group block p-6 bg-gray-800/50 border border-gray-700 rounded-2xl hover:border-blue-500 transition-all text-center"
-                          >
-                            <doc.icon size={40} className="mx-auto mb-3 text-blue-400 group-hover:scale-110 transition" />
-                            <p className="font-medium text-sm">{doc.label}</p>
-                            <p className="text-xs text-gray-500 mt-1 truncate">{doc.file}</p>
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
+                
                 {activeTab === "declaration" && (
                   <div className="max-w-2xl mx-auto text-center py-10">
-                    <div className={`text-6xl mb-6 ${selectedUser.declarationAccepted ? "text-green-500" : "text-red-500"}`}>
-                      {selectedUser.declarationAccepted ? "✓" : "✗"}
+                    <div className={`text-6xl mb-6 ${selectedUser.otpVerified ? "text-green-500" : "text-red-500"}`}>
+                      {selectedUser.otpVerified ? "✓" : "✗"}
                     </div>
                     <h3 className="text-2xl font-bold mb-6">
-                      Declaration {selectedUser.declarationAccepted ? "Accepted" : "Not Accepted"}
+                      OTP {selectedUser.otpVerified ? "Verified" : "Not Verified"}
                     </h3>
-                    <div className="space-y-4 text-left bg-gray-800/50 rounded-2xl p-8">
-                      <p><strong>IP:</strong> {selectedUser.ip || "—"}</p>
-                      <p><strong>Date:</strong> {selectedUser.submittedAt || "—"}</p>
+                    <div className="space-y-4 bg-gray-800/50 rounded-2xl p-6">
+                      <p><strong>Remarks:</strong> {selectedUser.notes || "—"}</p>
+                      <p><strong>IP Address:</strong> {selectedUser.ip || "—"}</p>
+                      <p><strong>Submitted At:</strong> {selectedUser.submittedAt || "—"}</p>
                     </div>
                   </div>
                 )}
@@ -517,8 +445,6 @@ const handleExport = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Export Modal */}
       <AnimatePresence>
         {exportModal && (
           <motion.div className="fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center p-4 z-50">
