@@ -53,13 +53,13 @@ const VisitorRegistrationForm = () => {
       if (formData.brokerId) newErrors.brokerId = "Channel Partner company name required";
     }
 
-    if (formData.referral === "direct") {
-      if (!formData.directSource) newErrors.directSource = "Please select or enter a source";
-    }
+    // if (formData.referral === "direct") {
+    //   if (!formData.directSource) newErrors.directSource = "Please select or enter a source";
+    // }
 
-    if (formData.referral === "direct" && formData.directSource === "others") {
-      if (!formData.directSourceOthers) newErrors.directSourceOthers = "Please enter a source";
-    }
+    // if (formData.referral === "direct" && formData.directSource === "others") {
+    //   if (!formData.directSourceOthers) newErrors.directSourceOthers = "Please enter a source";
+    // }
 
     if (!formData.name) newErrors.name = "Name required";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -68,13 +68,13 @@ const VisitorRegistrationForm = () => {
     if (!/^[6-9]\d{9}$/.test(formData.phone)) {
       newErrors.phone = "Enter valid 10-digit mobile number";
     }
-    if (!formData.city) newErrors.city = "City required";
-    if (formData.city === 'others' && !formData.cityOther) newErrors.cityOther = "City required";
-    if (formData.pincode.length !== 6) newErrors.pincode = "Pincode required";
+    // if (!formData.city) newErrors.city = "City required";
+    // if (formData.city === 'others' && !formData.cityOther) newErrors.cityOther = "City required";
+    // if (formData.pincode.length !== 6) newErrors.pincode = "Pincode required";
 
-    if (!formData.projectConfig) newErrors.projectConfig = "Please select a configuration";
+    // if (!formData.projectConfig) newErrors.projectConfig = "Please select a configuration";
 
-    if (!formData.projectDuration) newErrors.projectDuration = "Please select a delivey time";
+    // if (!formData.projectDuration) newErrors.projectDuration = "Please select a delivey time";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -240,7 +240,7 @@ const VisitorRegistrationForm = () => {
                 </div>                  
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Your city *
+                    Select Your city
                   </label>
 
                   <select
@@ -286,7 +286,7 @@ const VisitorRegistrationForm = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pincode *
+                    Pincode
                   </label>
                   <input
                     type="text"
@@ -334,7 +334,7 @@ const VisitorRegistrationForm = () => {
               {formData.referral === "direct" && (
                 <div className="mt-6 max-w-md">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    How did you hear about us? *
+                    How did you hear about us?
                   </label>
 
                   <select
@@ -425,7 +425,7 @@ const VisitorRegistrationForm = () => {
               <div className="space-y-8">
                 <div>
                   <p className="font-medium mb-4">
-                    Configuration Interested In <span className="text-red-500">*</span>
+                    Configuration Interested In <span className="text-red-500"></span>
                   </p>
                   <div
                     className={`grid grid-cols-1 md:grid-cols-3 gap-6 ${
@@ -466,7 +466,7 @@ const VisitorRegistrationForm = () => {
               <div className="space-y-8">
                 <div>
                   <p className="font-medium mb-4">
-                    When you wants to book <span className="text-red-500">*</span>
+                    When you wants to book <span className="text-red-500"></span>
                   </p>
                   <div
                     className={`grid grid-cols-1 md:grid-cols-3 gap-6 ${
